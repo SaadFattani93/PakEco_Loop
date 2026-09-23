@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PakEco Loop — Circular Waste Tech & Enterprise Ecosystem</title>
+    
+    <!-- React 18 & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel compiler for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body {
+            background-color: #030712;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Styling */
+        .glass-panel {
+            background: rgba(15, 35, 25, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 255, 136, 0.18);
+        }
+
+        .glass-nav {
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+        }
+
+        .accent-emerald { color: #00FF88; }
+        .bg-accent-emerald { background-color: #00FF88; }
+        
+        .glow-effect {
+            box-shadow: 0 0 25px -5px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #0F3A22; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00FF88; }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function App() {
+            // Navigation State
+            const [currentTab, setCurrentTab] = useState('overview'); // overview, user, collector, b2b, survey
+            
+            // Dynamic State Management
+            const [walletBalance, setWalletBalance] = useState(1450);
+            const [selectedMaterials, setSelectedMaterials] = useState({ pet: true, paper: false, metal: false });
+            const [weight, setWeight] = useState(6.5);
+            const [scaleReading, setScaleReading] = useState(6.50);
+            const [toastMessage, setToastMessage] = useState('');
+            
+            // Live Pending Orders List
+            const [orders, setOrders] = useState([
+                { id: 'PK-9912', location: 'Gulshan-e-Iqbal, Block 5, KHI', weight: '6.50 kg', status: 'In-Transit', type: 'PET Plastics (Sorted)' },
+                { id: 'PK-9913', location: 'DHA Phase 6, Karachi', weight: '14.0 kg', status: 'Pending Pickup', type: 'Corrugated Cardboard' }
+            ]);
+
+            // Material Rates (PKR per KG)
+            const rates = { pet: 55, paper: 38, metal: 190 };
+
+            // Payout Calculator Function
+            const calculatePayout = () => {
+                let totalRate = 0;
+                if (selectedMaterials.pet) totalRate += rates.pet;
+                if (selectedMaterials.paper) totalRate += rates.paper;
+                if (selectedMaterials.metal) totalRate += rates.metal;
+                return (weight * (totalRate || rates.pet)).toFixed(2);
+            };
+
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(''), 4500);
+            };
+
+            const toggleMaterial = (key) => {
+                setSelectedMaterials(prev => ({ ...prev, [key]: !prev[key] }));
+            };
+
+            // Schedule Pickup Action
+            const handleOrderSubmit = () => {
+                const payout = calculatePayout();
+                const newOrder = {
+                    id: `PK-${Math.floor(1000 + Math.random() * 9000)}`,
+                    location: 'Your GPS Location (Live Request)',
+                    weight: `${weight} kg`,
+                    status: 'Dispatched',
+                    type: 'Mixed Recyclables'
+                };
+                setOrders([newOrder, ...orders]);
+                showToast(`🚀 Order Dispatched! Estimated Wallet Reward: PKR ${payout}`);
+                setTimeout(() => setCurrentTab('collector'), 1500);
+            };
+
+            // IoT Scale Simulator Action
+            const handleSyncScale = () => {
+                const randomVal = (Math.random() * (9 - 4) + 4).toFixed(2);
+                setScaleReading(randomVal);
+                showToast(`📡 IoT Scale Synced: ${randomVal} kg Verified`);
+            };
+
+            // Complete Order Action
+            const handleCompleteJob = (orderId) => {
+                const reward = Math.round(scaleReading * 55);
+                setWalletBalance(prev => prev + reward);
+                setOrders(orders.filter(o => o.id !== orderId));
+                showToast(`✅ Pickup Completed! PKR ${reward}.00 Credited to User Wallet.`);
+                setTimeout(() => setCurrentTab('user'), 2000);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    
+                    {/* Navigation Header */}
+                    <header className="glass-nav sticky top-0 z-50">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+                            
+                            {/* Brand Logo */}
+                            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setCurrentTab('overview')}>
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center glow-effect">
+                                    <i className="fa-solid fa-recycle text-emerald-400 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-black tracking-tight text-white leading-none">
+                                        PakEco <span className="accent-emerald">Loop</span>
+                                    </h1>
+                                    <p className="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase mt-0.5">Circular Waste Tech</p>
+                                </div>
+                            </div>
+
+                            {/* Navigation Tabs */}
+                            <nav className="hidden lg:flex items-center space-x-1 bg-gray-900/80 p-1 rounded-xl border border-gray-800">
+                                <button onClick={() => setCurrentTab('overview')} className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${currentTab === 'overview' ? 'bg-emerald-500 text-gray-950' : 'text-gray-400 hover:text-white'}`}>
+                                    <i className="fa-solid fa-earth-asia mr-1.5"></i> Detailed Project Hub
+                                </button>
+                                <button onClick={() => setCurrentTab('user')} className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${currentTab === 'user' ? 'bg-emerald-500 text-gray-950' : 'text-gray-400 hover:text-white'}`}>
+                                    <i className="fa-solid fa-mobile-screen mr-1.5"></i> Household App
+                                </button>
+                                <button onClick={() => setCurrentTab('collector')} className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${currentTab === 'collector' ? 'bg-emerald-500 text-gray-950' : 'text-gray-400 hover:text-white'}`}>
+                                    <i className="fa-solid fa-truck-fast mr-1.5"></i> Collector Terminal ({orders.length})
+                                </button>
+                                <button onClick={() => setCurrentTab('b2b')} className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${currentTab === 'b2b' ? 'bg-emerald-500 text-gray-950' : 'text-gray-400 hover:text-white'}`}>
+                                    <i className="fa-solid fa-industry mr-1.5"></i> B2B Factory Hub
+                                </button>
+                                <button onClick={() => setCurrentTab('survey')} className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${currentTab === 'survey' ? 'bg-emerald-500 text-gray-950' : 'text-gray-400 hover:text-white'}`}>
+                                    <i className="fa-solid fa-clipboard-list mr-1.5"></i> Survey Form
+                                </button>
+                            </nav>
+
+                            {/* Live Tag */}
+                            <div className="flex items-center space-x-2">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/50">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+                                    ITCN ASIA LIVE
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Mobile Sub-Nav */}
+                        <div className="lg:hidden flex overflow-x-auto p-2 bg-gray-950 border-t border-gray-800 space-x-2 scrollbar-none">
+                            <button onClick={() => setCurrentTab('overview')} className={`whitespace-nowrap px-3 py-1.5 text-[11px] font-bold rounded-lg ${currentTab === 'overview' ? 'bg-emerald-500 text-gray-950' : 'bg-gray-900 text-gray-400'}`}>Project Details</button>
+                            <button onClick={() => setCurrentTab('user')} className={`whitespace-nowrap px-3 py-1.5 text-[11px] font-bold rounded-lg ${currentTab === 'user' ? 'bg-emerald-500 text-gray-950' : 'bg-gray-900 text-gray-400'}`}>Household App</button>
+                            <button onClick={() => setCurrentTab('collector')} className={`whitespace-nowrap px-3 py-1.5 text-[11px] font-bold rounded-lg ${currentTab === 'collector' ? 'bg-emerald-500 text-gray-950' : 'bg-gray-900 text-gray-400'}`}>Logistics ({orders.length})</button>
+                            <button onClick={() => setCurrentTab('b2b')} className={`whitespace-nowrap px-3 py-1.5 text-[11px] font-bold rounded-lg ${currentTab === 'b2b' ? 'bg-emerald-500 text-gray-950' : 'bg-gray-900 text-gray-400'}`}>B2B Factory</button>
+                            <button onClick={() => setCurrentTab('survey')} className={`whitespace-nowrap px-3 py-1.5 text-[11px] font-bold rounded-lg ${currentTab === 'survey' ? 'bg-emerald-500 text-gray-950' : 'bg-gray-900 text-gray-400'}`}>Survey</button>
+                        </div>
+                    </header>
+
+                    {/* Main Application Body */}
+                    <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-8">
+
+                        {/* SCREEN 1: DEEP-DIVE OVERVIEW, CASE STUDIES, PROBLEM ANALYSIS & COMPARISON */}
+                        {currentTab === 'overview' && (
+                            <div className="space-y-10 animate-fadeIn">
+                                
+                                {/* Hero Banner */}
+                                <div className="glass-panel p-6 sm:p-10 rounded-3xl relative overflow-hidden">
+                                    <div className="absolute -right-10 -bottom-10 text-emerald-900/10 text-[260px] pointer-events-none">
+                                        <i className="fa-solid fa-leaf"></i>
+                                    </div>
+                                    <div className="max-w-3xl space-y-4 relative z-10">
+                                        <span className="bg-emerald-950 text-emerald-400 text-xs font-extrabold px-3 py-1 rounded-full border border-emerald-700/50 uppercase tracking-widest">
+                                            Pakistan's 1st Digital Circular Economy Platform
+                                        </span>
+                                        <h1 className="text-3xl sm:text-5xl font-black text-white leading-tight">
+                                            Solving Pakistan's Waste Crisis with <span className="accent-emerald">Financial Incentives & IoT Tech.</span>
+                                        </h1>
+                                        <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                                            PakEco Loop digitizes the unorganized waste sector by converting household trash into digital cash, empowering informal waste pickers, and supplying pure raw material to industrial recyclers.
+                                        </p>
+                                        <div className="flex flex-wrap gap-3 pt-2">
+                                            <button onClick={() => setCurrentTab('user')} className="bg-accent-emerald text-gray-950 font-extrabold px-6 py-3 rounded-xl text-xs hover:opacity-90 shadow-lg glow-effect">
+                                                Test Live Prototype <i className="fa-solid fa-arrow-right ml-2"></i>
+                                            </button>
+                                            <button onClick={() => setCurrentTab('survey')} className="bg-gray-900 hover:bg-gray-800 text-white font-bold px-6 py-3 rounded-xl text-xs border border-gray-700">
+                                                Take Survey Form <i className="fa-solid fa-external-link ml-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* SECTION 1: THE CORE PROBLEM & REAL-LIFE IMPACT */}
+                                <div className="space-y-4">
+                                    <div className="border-l-4 border-emerald-400 pl-3">
+                                        <h2 className="text-xl font-extrabold text-white">1. Deep-Dive into the Problem Statement</h2>
+                                        <p className="text-xs text-gray-400">Why Pakistan's current waste management infrastructure is failing</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                        <div className="glass-panel p-6 rounded-2xl border-t-2 border-t-red-500 space-y-2">
+                                            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 font-bold mb-2">
+                                                <i className="fa-solid fa-dumpster-fire text-lg"></i>
+                                            </div>
+                                            <h3 className="text-base font-bold text-white">Linear "Take-Make-Waste" Model</h3>
+                                            <p className="text-xs text-gray-300 leading-relaxed">
+                                                Pakistan produces over **49.6 Million Tons** of solid waste annually, growing by 2.4% every year. Over **60-70%** of this waste is never collected and is instead dumped on open plots or burned publicly.
+                                            </p>
+                                        </div>
+
+                                        <div className="glass-panel p-6 rounded-2xl border-t-2 border-t-amber-500 space-y-2">
+                                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 font-bold mb-2">
+                                                <i className="fa-solid fa-ban text-lg"></i>
+                                            </div>
+                                            <h3 className="text-base font-bold text-white">Zero Source Segregation</h3>
+                                            <p className="text-xs text-gray-300 leading-relaxed">
+                                                Households mix organic waste with valuable plastics, paper, and glass. Once mixed, recyclables get contaminated, making industrial recycling economically unviable (&lt;15% efficiency).
+                                            </p>
+                                        </div>
+
+                                        <div className="glass-panel p-6 rounded-2xl border-t-2 border-t-emerald-500 space-y-2">
+                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-bold mb-2">
+                                                <i className="fa-solid fa-people-carry-box text-lg"></i>
+                                            </div>
+                                            <h3 className="text-base font-bold text-white">Informal Sector Exploitation</h3>
+                                            <p className="text-xs text-gray-300 leading-relaxed">
+                                                300,000+ informal waste collectors (*Raddi-walas*) operate without health safety or digital pricing. Middlemen (*Kabbaadi Market*) exploit them, taking up to **60% margin**.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* SECTION 2: REAL-LIFE CASE STUDIES IN PAKISTAN */}
+                                <div className="space-y-4">
+                                    <div className="border-l-4 border-emerald-400 pl-3">
+                                        <h2 className="text-xl font-extrabold text-white">2. Real-Life Case Studies</h2>
+                                        <p className="text-xs text-gray-400">Ground observations from major metropolitan hubs</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Case Study 1 */}
+                                        <div className="bg-gray-900/90 p-6 rounded-2xl border border-gray-800 space-y-3 relative overflow-hidden">
+                                            <span className="text-[10px] bg-red-950 text-red-400 px-3 py-1 rounded-full font-bold border border-red-800 uppercase">Case Study 1: Karachi Urban Flooding</span>
+                                            <h3 className="text-lg font-bold text-white">Plastic Waste Blocking Urban Drainage (Nullahs)</h3>
+                                            <p className="text-xs text-gray-300 leading-relaxed">
+                                                During urban monsoons in Karachi, plastic bottles and bags block major storm drains like Gujjar Nullah and Lyari Nullah. The Sindh Solid Waste Management Board (SSWMB) collects only 60% of daily waste. The remaining 40% causes urban flooding, leading to **$1.2 Billion in urban infrastructure damages**.
+                                            </p>
+                                            <div className="bg-gray-950 p-3 rounded-xl border border-gray-800 text-xs text-emerald-400 font-medium">
+                                                💡 **PakEco Loop Solution:** By placing cash incentives directly on PET bottles, households sell plastics before they ever hit municipal drains.
+                                            </div>
+                                        </div>
+
+                                        {/* Case Study 2 */}
+                                        <div className="bg-gray-900/90 p-6 rounded-2xl border border-gray-800 space-y-3 relative overflow-hidden">
+                                            <span className="text-[10px] bg-amber-950 text-amber-400 px-3 py-1 rounded-full font-bold border border-amber-800 uppercase">Case Study 2: Industrial Raw Material Shortage</span>
+                                            <h3 className="text-lg font-bold text-white">Local Recyclers Importing Foreign Waste</h3>
+                                            <p className="text-xs text-gray-300 leading-relaxed">
+                                                Packaging and textile manufacturers in Lahore and Faisalabad struggle to procure clean plastic scrap locally due to contamination. Consequently, Pakistan spends millions in **foreign exchange importing scrap plastic bales** from Europe, despite producing millions of tons locally.
+                                            </p>
+                                            <div className="bg-gray-950 p-3 rounded-xl border border-gray-800 text-xs text-emerald-400 font-medium">
+                                                💡 **PakEco Loop Solution:** Source-segregated collection ensures 96%+ material purity, fulfilling B2B factory demand locally.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* SECTION 3: WHY PAKECO LOOP IS THE BEST SOLUTION (COMPARISON) */}
+                                <div className="space-y-4">
+                                    <div className="border-l-4 border-emerald-400 pl-3">
+                                        <h2 className="text-xl font-extrabold text-white">3. Why PakEco Loop is the Best Solution?</h2>
+                                        <p className="text-xs text-gray-400">Competitive comparative analysis against existing models</p>
+                                    </div>
+
+                                    <div className="overflow-x-auto glass-panel rounded-2xl p-4">
+                                        <table className="w-full text-left text-xs text-gray-300">
+                                            <thead className="bg-gray-900/90 text-emerald-400 uppercase font-bold border-b border-gray-800">
+                                                <tr>
+                                                    <th className="p-3">Feature / Parameter</th>
+                                                    <th className="p-3">Traditional Raddi-Wala</th>
+                                                    <th className="p-3">Municipal Trucks (SSWMB/LWMC)</th>
+                                                    <th className="p-3 text-emerald-400 bg-emerald-950/40 border border-emerald-500/30">PakEco Loop Ecosystem</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-800/60">
+                                                <tr>
+                                                    <td className="p-3 font-bold text-white">Household Incentive</td>
+                                                    <td className="p-3 text-gray-400">Irregular cash, low rates</td>
+                                                    <td className="p-3 text-red-400">None (Fee charged)</td>
+                                                    <td className="p-3 font-bold text-emerald-400 bg-emerald-950/20">Instant Digital Wallet Cashback</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-3 font-bold text-white">Material Purity</td>
+                                                    <td className="p-3 text-gray-400">Low (Mixed items)</td>
+                                                    <td className="p-3 text-red-400">Extremely Contaminated (&lt;10%)</td>
+                                                    <td className="p-3 font-bold text-emerald-400 bg-emerald-950/20">High Purity Grade (96%+)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-3 font-bold text-white">Weight Transparency</td>
+                                                    <td className="p-3 text-red-400">Manual scale manipulation</td>
+                                                    <td className="p-3 text-gray-400">N/A</td>
+                                                    <td className="p-3 font-bold text-emerald-400 bg-emerald-950/20">IoT Bluetooth Verified Scales</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-3 font-bold text-white">Collector Formalization</td>
+                                                    <td className="p-3 text-red-400">Exploited informal labor</td>
+                                                    <td className="p-3 text-gray-400">Fixed municipal salaries</td>
+                                                    <td className="p-3 font-bold text-emerald-400 bg-emerald-950/20">Gig-Economy Riders (+40% Income)</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="p-3 font-bold text-white">B2B Integration</td>
+                                                    <td className="p-3 text-gray-400">Multiple middleman layers</td>
+                                                    <td className="p-3 text-red-400">Landfill dumping</td>
+                                                    <td className="p-3 font-bold text-emerald-400 bg-emerald-950/20">Direct Factory Marketplace Hub</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* SECTION 4: UN SDGs & METRICS */}
+                                <div className="glass-panel p-6 rounded-3xl space-y-4">
+                                    <h2 className="text-xl font-extrabold text-white flex items-center">
+                                        <i className="fa-solid fa-globe text-emerald-400 mr-2"></i> Targeted UN Sustainable Development Goals (SDGs)
+                                    </h2>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="bg-gray-900/90 p-4 rounded-xl border border-emerald-900/60 flex items-start space-x-3">
+                                            <div className="w-12 h-12 bg-amber-600 rounded-lg flex-shrink-0 flex items-center justify-center font-black text-white text-lg">11</div>
+                                            <div>
+                                                <h3 className="text-xs font-bold text-white uppercase">SDG 11: Sustainable Cities & Communities</h3>
+                                                <p className="text-[11px] text-gray-400 mt-1">Prevents open urban dumping, reduces drain clog hazards, and cleans urban neighborhoods.</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-900/90 p-4 rounded-xl border border-emerald-900/60 flex items-start space-x-3">
+                                            <div className="w-12 h-12 bg-emerald-600 rounded-lg flex-shrink-0 flex items-center justify-center font-black text-white text-lg">12</div>
+                                            <div>
+                                                <h3 className="text-xs font-bold text-white uppercase">SDG 12: Responsible Consumption & Production</h3>
+                                                <p className="text-[11px] text-gray-400 mt-1">Encourages household segregation at source and creates a circular raw material chain for industries.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        )}
+
+                        {/* SCREEN 2: HOUSEHOLD APP */}
+                        {currentTab === 'user' && (
+                            <div className="max-w-2xl mx-auto space-y-5 animate-fadeIn">
+                                <div className="glass-panel p-6 rounded-3xl space-y-5">
+                                    
+                                    <div className="flex justify-between items-center border-b border-emerald-900/50 pb-4">
+                                        <div>
+                                            <h3 className="text-base font-bold text-white">Schedule Waste Pickup</h3>
+                                            <p className="text-xs text-gray-400">Earn instant wallet rewards for segregated recyclables</p>
+                                        </div>
+                                        <div className="text-right bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-800/60">
+                                            <span className="text-[10px] text-gray-400 font-semibold uppercase block">Wallet Balance</span>
+                                            <span className="text-base font-black text-emerald-400">PKR {walletBalance}.00</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Material Selection */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-300 block">Select Materials to Recycle:</label>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div onClick={() => toggleMaterial('pet')} className={`p-3 rounded-2xl cursor-pointer border transition-all text-center ${selectedMaterials.pet ? 'bg-emerald-950/70 border-emerald-400 glow-effect' : 'bg-gray-900 border-gray-800'}`}>
+                                                <i className="fa-solid fa-bottle-water text-emerald-400 text-2xl mb-1"></i>
+                                                <p className="text-xs font-bold text-white">PET Plastics</p>
+                                                <p className="text-[10px] text-emerald-400 font-semibold">PKR 55/kg</p>
+                                            </div>
+                                            <div onClick={() => toggleMaterial('paper')} className={`p-3 rounded-2xl cursor-pointer border transition-all text-center ${selectedMaterials.paper ? 'bg-emerald-950/70 border-emerald-400 glow-effect' : 'bg-gray-900 border-gray-800'}`}>
+                                                <i className="fa-solid fa-box text-blue-400 text-2xl mb-1"></i>
+                                                <p className="text-xs font-bold text-white">Paper / Board</p>
+                                                <p className="text-[10px] text-blue-400 font-semibold">PKR 38/kg</p>
+                                            </div>
+                                            <div onClick={() => toggleMaterial('metal')} className={`p-3 rounded-2xl cursor-pointer border transition-all text-center ${selectedMaterials.metal ? 'bg-emerald-950/70 border-emerald-400 glow-effect' : 'bg-gray-900 border-gray-800'}`}>
+                                                <i className="fa-solid fa-dumpster text-amber-400 text-2xl mb-1"></i>
+                                                <p className="text-xs font-bold text-white">Metals</p>
+                                                <p className="text-[10px] text-amber-400 font-semibold">PKR 190/kg</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Weight Range Slider */}
+                                    <div className="space-y-2 bg-gray-900/80 p-4 rounded-2xl border border-gray-800">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-400 font-medium">Estimated Weight:</span>
+                                            <span className="text-emerald-400 font-extrabold">{weight} kg</span>
+                                        </div>
+                                        <input 
+                                            type="range" min="1" max="30" step="0.5" value={weight} 
+                                            onChange={(e) => setWeight(parseFloat(e.target.value))}
+                                            className="w-full accent-emerald bg-gray-800 h-2 rounded-lg cursor-pointer"
+                                        />
+                                    </div>
+
+                                    {/* Payout Summary */}
+                                    <div className="bg-gray-900 p-4 rounded-2xl border border-gray-800 flex justify-between items-center">
+                                        <div>
+                                            <p className="text-[11px] text-gray-400">Estimated Cashback Value</p>
+                                            <p className="text-xl font-black text-emerald-400">PKR {calculatePayout()}</p>
+                                        </div>
+                                        <button onClick={handleOrderSubmit} className="bg-accent-emerald text-gray-950 font-black px-5 py-3 rounded-xl text-xs hover:opacity-90 shadow-lg glow-effect">
+                                            Request Pickup Now <i className="fa-solid fa-arrow-right ml-1"></i>
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SCREEN 3: COLLECTOR TERMINAL */}
+                        {currentTab === 'collector' && (
+                            <div className="max-w-3xl mx-auto space-y-5 animate-fadeIn">
+                                <div className="glass-panel p-6 rounded-3xl space-y-4">
+                                    <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+                                        <div>
+                                            <h3 className="text-base font-bold text-white">Collector Dispatch Dashboard</h3>
+                                            <p className="text-xs text-gray-400">Electric Loader Crew / Rider View</p>
+                                        </div>
+                                        <span className="bg-blue-950 text-blue-300 text-xs font-semibold px-3 py-1 rounded-lg border border-blue-800">
+                                            Loader Unit: #EL-04
+                                        </span>
+                                    </div>
+
+                                    {orders.length === 0 ? (
+                                        <div className="text-center py-10 space-y-2">
+                                            <i className="fa-solid fa-circle-check text-emerald-400 text-4xl"></i>
+                                            <p className="text-sm font-bold text-white">All pending pickups completed!</p>
+                                            <p className="text-xs text-gray-400">Switch to Household App to simulate a new order.</p>
+                                        </div>
+                                    ) : (
+                                        orders.map((order) => (
+                                            <div key={order.id} className="bg-gray-900/90 p-4 rounded-2xl border border-emerald-900/60 space-y-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <span className="text-[10px] bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded font-mono font-bold border border-emerald-800">{order.id}</span>
+                                                        <h4 className="text-sm font-bold text-white mt-1.5">{order.location}</h4>
+                                                        <p className="text-xs text-gray-400">{order.type} • Est. {order.weight}</p>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-amber-400 bg-amber-950/80 px-3 py-1 rounded-lg border border-amber-800">
+                                                        {order.status}
+                                                    </span>
+                                                </div>
+
+                                                {/* IoT Scale Reading */}
+                                                <div className="bg-gray-950 p-3.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                                                    <div className="flex items-center space-x-3">
+                                                        <i className="fa-solid fa-scale-balanced text-emerald-400 text-xl"></i>
+                                                        <div>
+                                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider">IoT Digital Scale Reading</p>
+                                                            <p className="text-xs font-extrabold text-white">{scaleReading} kg Verified</p>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={handleSyncScale} className="bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-700">
+                                                        <i className="fa-solid fa-rotate mr-1"></i> Re-Sync Scale
+                                                    </button>
+                                                </div>
+
+                                                <button onClick={() => handleCompleteJob(order.id)} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl text-xs shadow-md">
+                                                    Approve Weight & Pay PKR {Math.round(scaleReading * 55)} to User Wallet
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SCREEN 4: B2B FACTORY HUB */}
+                        {currentTab === 'b2b' && (
+                            <div className="max-w-4xl mx-auto space-y-5 animate-fadeIn">
+                                <div className="glass-panel p-6 rounded-3xl space-y-4">
+                                    <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+                                        <div>
+                                            <h3 className="text-base font-bold text-white">B2B Material Recovery Marketplace</h3>
+                                            <p className="text-xs text-gray-400">Industrial Recyclers & Packaging Manufacturer Feed</p>
+                                        </div>
+                                        <span className="text-xs text-emerald-400 font-bold bg-emerald-950 px-3 py-1 rounded-lg border border-emerald-800">Purity Grade: 96%</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="bg-gray-900/90 p-4 rounded-2xl border border-gray-800 space-y-3">
+                                            <h4 className="text-sm font-bold text-white">PET Flakes & Sorted Bales</h4>
+                                            <p className="text-xs text-gray-400">Ready Bulk Stock: <span className="text-white font-bold">4,200 kg</span></p>
+                                            <p className="text-xs text-gray-400">Wholesale B2B Rate: <span className="text-emerald-400 font-bold">PKR 120/kg</span></p>
+                                            <button onClick={() => showToast("🛒 Industrial Procurement Request Sent to Facility Hub!")} className="w-full bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/60 font-bold py-2.5 rounded-xl text-xs">
+                                                Procure Bulk Lot
+                                            </button>
+                                        </div>
+
+                                        <div className="bg-gray-900/90 p-4 rounded-2xl border border-gray-800 space-y-3">
+                                            <h4 className="text-sm font-bold text-white">Corrugated Cardboard Bales</h4>
+                                            <p className="text-xs text-gray-400">Ready Bulk Stock: <span className="text-white font-bold">2,850 kg</span></p>
+                                            <p className="text-xs text-gray-400">Wholesale B2B Rate: <span className="text-emerald-400 font-bold">PKR 70/kg</span></p>
+                                            <button onClick={() => showToast("🛒 Industrial Procurement Request Sent to Facility Hub!")} className="w-full bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700/60 font-bold py-2.5 rounded-xl text-xs">
+                                                Procure Bulk Lot
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* SCREEN 5: GOOGLE FORM INTEGRATION */}
+                        {currentTab === 'survey' && (
+                            <div className="max-w-4xl mx-auto space-y-5 animate-fadeIn">
+                                <div className="glass-panel p-6 rounded-3xl space-y-4">
+                                    <div className="flex justify-between items-center border-b border-gray-800 pb-3">
+                                        <div>
+                                            <h3 className="text-base font-bold text-white">ITCN Asia Stakeholder Survey Form</h3>
+                                            <p className="text-xs text-gray-400">Direct embedded survey response sheet</p>
+                                        </div>
+                                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSclj6XiLVAcJ_VoMNotvFdbyRZX_SkqB_9wg0uDkhZoEvlL_Q/viewform" target="_blank" rel="noopener noreferrer" className="bg-emerald-500 text-gray-950 font-bold text-xs px-3 py-1.5 rounded-lg">
+                                            Open in New Tab <i className="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                                        </a>
+                                    </div>
+
+                                    {/* Embedded Form */}
+                                    <div className="w-full h-[650px] bg-white rounded-2xl overflow-hidden shadow-2xl">
+                                        <iframe 
+                                            src="https://docs.google.com/forms/d/e/1FAIpQLSclj6XiLVAcJ_VoMNotvFdbyRZX_SkqB_9wg0uDkhZoEvlL_Q/viewform?embedded=true" 
+                                            width="100%" 
+                                            height="100%" 
+                                            frameBorder="0" 
+                                            marginHeight="0" 
+                                            marginWidth="0">
+                                            Loading Google Form...
+                                        </iframe>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Toast Overlay */}
+                        {toastMessage && (
+                            <div className="fixed bottom-6 right-6 z-50 bg-emerald-950 border border-emerald-500 text-emerald-200 px-5 py-3 rounded-2xl text-xs font-bold shadow-2xl">
+                                {toastMessage}
+                            </div>
+                        )}
+
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="border-t border-gray-900 py-6 text-center text-xs text-gray-500">
+                        <p>© 2026 PakEco Loop — Enterprise Circular Infrastructure • Prepared for ITCN Asia Expo</p>
+                    </footer>
+
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
